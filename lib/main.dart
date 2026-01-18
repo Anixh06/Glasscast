@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:minimal_weather/config/supabase_config.dart';
 import 'package:minimal_weather/providers/auth_provider.dart';
@@ -8,8 +9,11 @@ import 'package:minimal_weather/screens/auth_screen.dart';
 import 'package:minimal_weather/screens/home_screen.dart';
 import 'package:provider/provider.dart';
 
-void main() async {
+Future main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  
+  // Load environment variables
+  await dotenv.load(fileName: ".env");
   
   // Initialize Supabase
   await SupabaseConfig.initialize();

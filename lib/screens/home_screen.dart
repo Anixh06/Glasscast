@@ -20,6 +20,7 @@ class _HomeScreenState extends State<HomeScreen> {
   List<City> _searchResults = [];
   bool _isSearching = false;
   bool _showSearchResults = false;
+  bool _showFavoritesSection = false;
 
   @override
   void initState() {
@@ -108,6 +109,9 @@ class _HomeScreenState extends State<HomeScreen> {
                   child: _buildForecastSection(weatherProvider),
                 ),
                 SliverToBoxAdapter(
+                  child: _buildFavoriteCitiesSection(weatherProvider),
+                ),
+                SliverToBoxAdapter(
                   child: const SizedBox(height: 100),
                 ),
               ],
@@ -124,12 +128,38 @@ class _HomeScreenState extends State<HomeScreen> {
     final cityDisplay = weatherProvider.selectedCity.isNotEmpty 
         ? weatherProvider.selectedCity 
         : (weatherProvider.currentWeather?.cityName ?? 'Loading...');
+    final isFavorite = _isCityFavorite(weatherProvider);
     
     return Padding(
       padding: const EdgeInsets.all(20),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
+          // Favorite Button
+          GestureDetector(
+            onTap: () => _toggleFavorite(weatherProvider),
+            child: Container(
+              width: 44,
+              height: 44,
+              decoration: BoxDecoration(
+                color: isFavorite 
+                    ? GlassColors.error.withValues(alpha: 0.2)
+                    : Colors.white.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: isFavorite 
+                      ? GlassColors.error.withValues(alpha: 0.5)
+                      : Colors.white.withValues(alpha: 0.2),
+                ),
+              ),
+              child: Icon(
+                isFavorite ? Icons.favorite : Icons.favorite_border,
+                color: isFavorite ? GlassColors.error : GlassColors.textSecondary,
+                size: 24,
+              ),
+            ),
+          ),
+          const SizedBox(width: 12),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -137,7 +167,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 Text(
                   cityDisplay,
                   style: GoogleFonts.inter(
-                    fontSize: 28,
+                    fontSize: 24,
                     fontWeight: FontWeight.bold,
                     color: Colors.white,
                   ),
@@ -289,6 +319,47 @@ class _HomeScreenState extends State<HomeScreen> {
               ],
             ),
     );
+  }
+
+  bool _isCityFavorite(WeatherProvider weatherProvider) {
+    if (weatherProvider.currentWeather == null) return false;
+    
+    final currentCityName = weatherProvider.currentWeather!.cityName.split(',')[0].trim().toLowerCase();
+    
+    for (final city in weatherProvider.favoriteCities) {
+      if (city.name.trim().toLowerCase() == currentCityName) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  void _toggleFavorite(WeatherProvider weatherProvider) {
+    if (weatherProvider.currentWeather == null) return;
+
+    final isFavorite = _isCityFavorite(weatherProvider);
+
+    if (isFavorite) {
+      // Find and remove the city from favorites
+      final currentCityName = weatherProvider.currentWeather!.cityName.split(',')[0].trim().toLowerCase();
+      final cityToRemove = weatherProvider.favoriteCities.firstWhere(
+        (city) => city.name.trim().toLowerCase() == currentCityName,
+      );
+      weatherProvider.removeFavoriteCity(cityToRemove.id);
+    } else {
+      // Add current city to favorites
+      final cityName = weatherProvider.currentWeather!.cityName;
+      final parts = cityName.split(',');
+      
+      final city = City(
+        name: parts[0].trim(),
+        country: parts.length > 1 ? parts[1].trim() : '',
+      );
+      
+      weatherProvider.addFavoriteCity(city);
+    }
+    
+    setState(() {});
   }
 
   Widget _buildWeatherDetails(WeatherProvider weatherProvider) {
@@ -455,6 +526,189 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                 ),
               ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildFavoriteCitiesSection(WeatherProvider weatherProvider) {
+    final favoriteCities = weatherProvider.favoriteCities;
+
+    if (favoriteCities.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
+    return Padding(
+      padding: const EdgeInsets.only(left: 20, right: 20, top: 10),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                'Favorite Cities',
+                style: GoogleFonts.inter(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.white,
+                ),
+              ),
+              IconButton(
+                onPressed: () {
+                  setState(() {
+                    _showFavoritesSection = !_showFavoritesSection;
+                  });
+                },
+                icon: Icon(
+                  _showFavoritesSection ? Icons.expand_less : Icons.expand_more,
+                  color: GlassColors.textSecondary,
+                ),
+              ),
+            ],
+          ),
+          if (_showFavoritesSection || favoriteCities.length <= 3)
+            SizedBox(
+              height: 100,
+              child: ListView.builder(
+                scrollDirection: Axis.horizontal,
+                itemCount: favoriteCities.length,
+                itemBuilder: (context, index) {
+                  final city = favoriteCities[index];
+                  return _buildFavoriteCityCard(city, weatherProvider);
+                },
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildFavoriteCityCard(City city, WeatherProvider weatherProvider) {
+    final isCurrentCity = weatherProvider.selectedCity.toLowerCase().contains(city.name.toLowerCase());
+    final currentWeather = weatherProvider.currentWeather;
+    final temp = currentWeather != null && isCurrentCity 
+        ? weatherProvider.formatTemperature(currentWeather.temperature) 
+        : '--';
+
+    return GestureDetector(
+      onTap: () {
+        final cityName = '${city.name}, ${city.country}';
+        weatherProvider.selectCity(cityName);
+        setState(() {
+          _showFavoritesSection = false;
+        });
+      },
+      onLongPress: () => _showRemoveFavoriteDialog(city),
+      child: Container(
+        width: 120,
+        margin: const EdgeInsets.only(right: 12),
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: isCurrentCity
+                ? [
+                    Colors.white.withValues(alpha: 0.25),
+                    Colors.white.withValues(alpha: 0.15),
+                  ]
+                : [
+                    Colors.white.withValues(alpha: 0.15),
+                    Colors.white.withValues(alpha: 0.05),
+                  ],
+          ),
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: isCurrentCity 
+                ? Colors.white.withValues(alpha: 0.3)
+                : Colors.white.withValues(alpha: 0.1),
+          ),
+        ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Icon(
+                  isCurrentCity ? Icons.location_on : Icons.location_on_outlined,
+                  color: isCurrentCity ? GlassColors.accent : GlassColors.textSecondary,
+                  size: 16,
+                ),
+                GestureDetector(
+                  onTap: () => _showRemoveFavoriteDialog(city),
+                  child: Icon(
+                    Icons.close,
+                    color: GlassColors.textTertiary,
+                    size: 16,
+                  ),
+                ),
+              ],
+            ),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  city.name,
+                  style: GoogleFonts.inter(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.white,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                Text(
+                  temp,
+                  style: GoogleFonts.inter(
+                    fontSize: 24,
+                    fontWeight: FontWeight.w300,
+                    color: Colors.white,
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showRemoveFavoriteDialog(City city) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: const Color(0xFF1a1a2e),
+        title: Text(
+          'Remove ${city.name}?',
+          style: GoogleFonts.inter(color: Colors.white),
+        ),
+        content: Text(
+          'This city will be removed from your favorites.',
+          style: GoogleFonts.inter(color: GlassColors.textSecondary),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text(
+              'Cancel',
+              style: GoogleFonts.inter(color: GlassColors.textSecondary),
+            ),
+          ),
+          TextButton(
+            onPressed: () {
+              Provider.of<WeatherProvider>(context, listen: false)
+                  .removeFavoriteCity(city.id);
+              Navigator.pop(context);
+              setState(() {});
+            },
+            child: Text(
+              'Remove',
+              style: GoogleFonts.inter(color: GlassColors.error),
             ),
           ),
         ],

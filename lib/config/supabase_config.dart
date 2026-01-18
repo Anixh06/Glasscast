@@ -1,8 +1,9 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 class SupabaseConfig {
-  static const String supabaseUrl = 'https://eneajtmprugcevuacxix.supabase.co';
-  static const String supabaseAnonKey = 'sb_publishable_bgGRAQ2l5SsXL0VgTY92cg_ewPS6l0m';
+  static String get supabaseUrl => dotenv.get('SUPABASE_URL');
+  static String get supabaseAnonKey => dotenv.get('SUPABASE_ANON_KEY');
   
   static SupabaseClient? _client;
   

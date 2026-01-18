@@ -1,7 +1,10 @@
-import 'package:flutter_dotenv/flutter_dotenv.dart';
+// Template for Weather API Configuration
+// Copy this file to weather_api_config.dart and fill in your actual values
+// DO NOT commit this template with real API keys!
 
 class WeatherApiConfig {
-  static String get apiKey => dotenv.get('WEATHER_API_KEY');
+  // Get your API key from: https://openweathermap.org/api
+  static const String apiKey = 'YOUR_OPENWEATHERMAP_API_KEY';
   static const String baseUrl = 'https://api.openweathermap.org/data/2.5';
   static const String oneCallUrl = 'https://api.openweathermap.org/data/3.0/onecall';
   

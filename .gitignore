@@ -51,9 +51,15 @@ app.*.map.json
 # Supabase and Environment
 .env
 .env.local
+.env.example
 .supabase/
+
+# Config files with API keys
+lib/config/*.dart
+!lib/config/template_*.dart
 
 # IDE
 *.xcworkspace
 xcuserdata/
 *.xcuserstate
+
