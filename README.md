@@ -1,4 +1,4 @@
-# 🌤️ Minimal Weather
+# Glasscast -Minimal Weather Application 
 
 A beautiful minimal weather app with glass-morphism design, built with Flutter.
 
@@ -129,9 +129,10 @@ lib/
 ## 📱 Screenshots
 
 <div align="center">
-  <img src="docs/screenshots/home.png" width="250" alt="Home Screen">
-  <img src="docs/screenshots/search.png" width="250" alt="City Search">
-  <img src="docs/screenshots/auth.png" width="250" alt="Authentication">
+  <img width="25%"  alt="Screenshot 2026-01-18 at 3 47 48 PM" src="https://github.com/user-attachments/assets/767be088-e899-4426-897f-e2c3a4ca73de" />
+  <img width="25%"  alt="Screenshot 2026-01-18 at 3 46 19 PM" src="https://github.com/user-attachments/assets/ab320320-6be4-4fee-b586-8c9333168516" />
+  <img width="25%"  alt="Screenshot 2026-01-18 at 3 46 44 PM" src="https://github.com/user-attachments/assets/ab136887-c55b-4096-acef-6a973b7d9231" />
+
 </div>
 
 ## 🎨 Design Features
