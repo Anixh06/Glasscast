@@ -1,0 +1,38 @@
+name: minimal_weather
+description: A beautiful minimal weather app with glass-morphism design
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.0.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  # State Management
+  provider: ^6.0.5
+  
+  # Supabase
+  supabase_flutter: ^2.3.0
+  
+  # Weather API
+  http: ^1.1.0
+  
+  # Utilities
+  intl: ^0.18.1
+  shared_preferences: ^2.2.2
+  uuid: ^4.2.1
+  
+  # UI/UX
+  google_fonts: ^6.1.0
+  flutter_svg: ^2.0.9
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^3.0.1
+
+flutter:
+  uses-material-design: true
+
